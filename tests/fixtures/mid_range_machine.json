@@ -1,0 +1,54 @@
+{
+  "cpu": {
+    "brand": "AMD",
+    "model": "Ryzen 5 5600X",
+    "architecture": "x86_64",
+    "physical_cores": 6,
+    "logical_cores": 12,
+    "frequency_ghz": 3.7,
+    "instruction_sets": ["AVX2"],
+    "is_64bit": true
+  },
+  "memory": {
+    "total_bytes": 17179869184,
+    "available_bytes": 12884901888,
+    "used_bytes": 4294967296,
+    "utilization_percent": 25.0,
+    "safe_budget_bytes": 10200547328
+  },
+  "gpus": [
+    {
+      "vendor": "NVIDIA",
+      "name": "NVIDIA GeForce RTX 3060",
+      "vram_bytes": 12884901888,
+      "driver_version": "535.129",
+      "cuda_available": true,
+      "rocm_available": false,
+      "metal_available": false,
+      "is_unified_memory": false
+    }
+  ],
+  "storage": {
+    "free_bytes": 214748364800,
+    "total_bytes": 1000000000000,
+    "filesystem": "ext4",
+    "storage_type": "NVMe"
+  },
+  "os_info": {
+    "platform_name": "Linux",
+    "release": "6.5.0",
+    "version": "#1",
+    "architecture": "x86_64",
+    "kernel_version": "6.5.0"
+  },
+  "runtime": {
+    "has_ollama": true,
+    "has_llamacpp": true,
+    "has_lmstudio": false,
+    "has_open_webui": false,
+    "has_cuda": true,
+    "has_rocm": false,
+    "has_vulkan": true,
+    "has_metal": false
+  }
+}

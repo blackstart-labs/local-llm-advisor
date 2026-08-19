@@ -1,0 +1,43 @@
+{
+  "cpu": {
+    "brand": "Intel",
+    "model": "Core i3-4130",
+    "architecture": "x86_64",
+    "physical_cores": 2,
+    "logical_cores": 4,
+    "frequency_ghz": 3.4,
+    "instruction_sets": ["AVX2"],
+    "is_64bit": true
+  },
+  "memory": {
+    "total_bytes": 8589934592,
+    "available_bytes": 4294967296,
+    "used_bytes": 4294967296,
+    "utilization_percent": 50.0,
+    "safe_budget_bytes": 2147483648
+  },
+  "gpus": [],
+  "storage": {
+    "free_bytes": 53687091200,
+    "total_bytes": 256000000000,
+    "filesystem": "ext4",
+    "storage_type": "SSD"
+  },
+  "os_info": {
+    "platform_name": "Linux",
+    "release": "6.5.0",
+    "version": "#1",
+    "architecture": "x86_64",
+    "kernel_version": "6.5.0"
+  },
+  "runtime": {
+    "has_ollama": true,
+    "has_llamacpp": false,
+    "has_lmstudio": false,
+    "has_open_webui": false,
+    "has_cuda": false,
+    "has_rocm": false,
+    "has_vulkan": false,
+    "has_metal": false
+  }
+}
