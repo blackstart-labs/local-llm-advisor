@@ -1,0 +1,54 @@
+{
+  "cpu": {
+    "brand": "AMD",
+    "model": "Threadripper 3990X",
+    "architecture": "x86_64",
+    "physical_cores": 64,
+    "logical_cores": 128,
+    "frequency_ghz": 4.3,
+    "instruction_sets": ["AVX2", "AVX512F"],
+    "is_64bit": true
+  },
+  "memory": {
+    "total_bytes": 137438953472,
+    "available_bytes": 107374182400,
+    "used_bytes": 30064771072,
+    "utilization_percent": 21.8,
+    "safe_budget_bytes": 85899345920
+  },
+  "gpus": [
+    {
+      "vendor": "NVIDIA",
+      "name": "NVIDIA RTX 4090",
+      "vram_bytes": 25769803776,
+      "driver_version": "545.29.06",
+      "cuda_available": true,
+      "rocm_available": false,
+      "metal_available": false,
+      "is_unified_memory": false
+    }
+  ],
+  "storage": {
+    "free_bytes": 1073741824000,
+    "total_bytes": 4000000000000,
+    "filesystem": "ext4",
+    "storage_type": "NVMe"
+  },
+  "os_info": {
+    "platform_name": "Linux",
+    "release": "6.8.0",
+    "version": "#1",
+    "architecture": "x86_64",
+    "kernel_version": "6.8.0"
+  },
+  "runtime": {
+    "has_ollama": true,
+    "has_llamacpp": true,
+    "has_lmstudio": true,
+    "has_open_webui": true,
+    "has_cuda": true,
+    "has_rocm": false,
+    "has_vulkan": true,
+    "has_metal": false
+  }
+}
