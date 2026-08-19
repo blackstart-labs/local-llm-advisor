@@ -8,18 +8,7 @@
 
 ---
 
-```
-╭──────────────────────────────────────────────────────────────╮
-│                 Local LLM Hardware Advisor                  │
-╰──────────────────────────────────────────────────────────────╯
-System Overview
-──────────────────────────────────────────────────────────────
-OS        Linux 6.8.0 (x86_64)
-CPU       Intel Core i7-12700K (12c/20t)
-RAM       32.0 GB total (24.0 GB available, safe budget: 19.2 GB)
-GPU       NVIDIA GeForce RTX 4070 (12.0 GB VRAM)
-Storage   450.0 GB available (NVMe)
-```
+![Local LLM Hardware Advisor Terminal Report](./docs/images/terminal-preview.png)
 
 ---
 
