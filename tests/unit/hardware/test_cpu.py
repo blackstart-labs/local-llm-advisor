@@ -1,6 +1,7 @@
 """Tests for CPU hardware detection."""
 
 from unittest.mock import MagicMock, patch
+
 from llm_advisor.hardware.cpu import detect_cpu
 
 

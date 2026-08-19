@@ -1,6 +1,6 @@
 """Tests for ModelRegistry and catalog querying."""
 
-from llm_advisor.models.registry import ModelRegistry, DefaultModelRegistry
+from llm_advisor.models.registry import DefaultModelRegistry, ModelRegistry
 from llm_advisor.models.schema import QuantizationLevel
 
 

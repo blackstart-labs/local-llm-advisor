@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import platform
-from typing import Optional
+
 from llm_advisor.hardware.schema import OsInfo
 
 
@@ -14,7 +14,7 @@ def detect_os() -> OsInfo:
     version = platform.version() or ""
     arch = platform.machine() or "x86_64"
 
-    kernel_version: Optional[str] = None
+    kernel_version: str | None = None
     if system_name == "Linux":
         kernel_version = release
     elif system_name == "Darwin":

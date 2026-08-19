@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import psutil
+
 from llm_advisor.hardware.schema import MemoryInfo
 
 

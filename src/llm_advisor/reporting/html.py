@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from typing import Optional
+
 from jinja2 import Environment, FileSystemLoader
 
 from llm_advisor.analysis.recommender import RecommendationReport
@@ -11,7 +11,7 @@ from llm_advisor.analysis.recommender import RecommendationReport
 
 def generate_html_report(
     report: RecommendationReport,
-    output_path: Optional[str] = None,
+    output_path: str | None = None,
 ) -> str:
     """Generate self-contained HTML report file."""
     target_path = output_path if output_path is not None else "report.html"

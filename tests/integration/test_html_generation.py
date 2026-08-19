@@ -2,8 +2,9 @@
 
 import os
 from tempfile import NamedTemporaryFile
-from llm_advisor.hardware.detector import SystemHardwareDetector
+
 from llm_advisor.analysis.recommender import RecommendationEngine
+from llm_advisor.hardware.detector import SystemHardwareDetector
 from llm_advisor.reporting.html import generate_html_report
 
 

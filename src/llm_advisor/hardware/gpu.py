@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import platform
 import subprocess
-from typing import List
+
 import psutil
 
 from llm_advisor.hardware.schema import GpuInfo, GpuVendor
 
 
-def _detect_nvidia_gpus() -> List[GpuInfo]:
+def _detect_nvidia_gpus() -> list[GpuInfo]:
     """Detect NVIDIA GPUs via nvidia-smi command."""
-    gpus: List[GpuInfo] = []
+    gpus: list[GpuInfo] = []
     try:
         res = subprocess.run(
             [
@@ -47,9 +47,9 @@ def _detect_nvidia_gpus() -> List[GpuInfo]:
     return gpus
 
 
-def _detect_apple_silicon_gpu() -> List[GpuInfo]:
+def _detect_apple_silicon_gpu() -> list[GpuInfo]:
     """Detect Apple Silicon GPU with unified memory."""
-    gpus: List[GpuInfo] = []
+    gpus: list[GpuInfo] = []
     if platform.system() == "Darwin" and "arm" in platform.machine().lower():
         try:
             vm = psutil.virtual_memory()
@@ -69,9 +69,9 @@ def _detect_apple_silicon_gpu() -> List[GpuInfo]:
     return gpus
 
 
-def _detect_amd_gpus() -> List[GpuInfo]:
+def _detect_amd_gpus() -> list[GpuInfo]:
     """Detect AMD GPUs via rocm-smi or lspci."""
-    gpus: List[GpuInfo] = []
+    gpus: list[GpuInfo] = []
     try:
         res = subprocess.run(
             ["rocm-smi", "--showid", "--json"],
@@ -93,9 +93,9 @@ def _detect_amd_gpus() -> List[GpuInfo]:
     return gpus
 
 
-def detect_gpus() -> List[GpuInfo]:
+def detect_gpus() -> list[GpuInfo]:
     """Detect available GPUs with fail-safe behavior."""
-    gpus: List[GpuInfo] = []
+    gpus: list[GpuInfo] = []
 
     # 1. Try NVIDIA
     gpus.extend(_detect_nvidia_gpus())

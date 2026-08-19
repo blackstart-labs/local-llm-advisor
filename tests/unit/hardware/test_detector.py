@@ -1,6 +1,7 @@
 """Tests for overall hardware detector pipeline."""
 
 from unittest.mock import MagicMock, patch
+
 from llm_advisor.hardware.detector import SystemHardwareDetector
 from llm_advisor.hardware.schema import (
     CpuInfo,
@@ -26,7 +27,9 @@ def test_system_hardware_detector(
     mock_memory: MagicMock,
     mock_cpu: MagicMock,
 ) -> None:
-    mock_cpu.return_value = CpuInfo(brand="Intel", model="Core i7", physical_cores=4, logical_cores=8)
+    mock_cpu.return_value = CpuInfo(
+        brand="Intel", model="Core i7", physical_cores=4, logical_cores=8
+    )
     mock_memory.return_value = MemoryInfo(
         total_bytes=16 * (1024**3),
         available_bytes=12 * (1024**3),
@@ -36,7 +39,9 @@ def test_system_hardware_detector(
     )
     mock_gpus.return_value = []
     mock_storage.return_value = StorageInfo(free_bytes=100 * (1024**3), total_bytes=500 * (1024**3))
-    mock_os.return_value = OsInfo(platform_name="Linux", release="6.5", version="1", architecture="x86_64")
+    mock_os.return_value = OsInfo(
+        platform_name="Linux", release="6.5", version="1", architecture="x86_64"
+    )
     mock_runtime.return_value = RuntimeCapabilities(has_ollama=True)
 
     detector = SystemHardwareDetector()

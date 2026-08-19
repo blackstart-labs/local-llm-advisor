@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import List
 from llm_advisor.models.schema import (
     ModelProfile,
     QualityClass,
@@ -12,7 +11,7 @@ from llm_advisor.models.schema import (
 )
 
 
-def get_default_catalog() -> List[ModelProfile]:
+def get_default_catalog() -> list[ModelProfile]:
     """Return default curated collection of open-weight LLM profiles."""
     return [
         # --- Tiny Category (1B - 3.8B) ---
@@ -58,7 +57,11 @@ def get_default_catalog() -> List[ModelProfile]:
             speed_class=SpeedClass.BLAZING,
             quality_class=QualityClass.ENTRY,
             use_cases=["general_chat", "lightweight", "privacy", "fast_inference"],
-            pros=["Extremely low memory footprint", "Ultra-fast response time", "128K context support"],
+            pros=[
+                "Extremely low memory footprint",
+                "Ultra-fast response time",
+                "128K context support",
+            ],
             cons=["Limited complex reasoning capabilities", "Small knowledge base"],
             license="Llama-3.2 Community License",
         ),
@@ -303,7 +306,10 @@ def get_default_catalog() -> List[ModelProfile]:
             speed_class=SpeedClass.MODERATE,
             quality_class=QualityClass.FRONTIER,
             use_cases=["reasoning", "coding", "math"],
-            pros=["State-of-the-art chain-of-thought reasoning for 7B class", "Exceptional math solving"],
+            pros=[
+                "State-of-the-art chain-of-thought reasoning for 7B class",
+                "Exceptional math solving",
+            ],
             cons=["Generates longer verbose reasoning steps"],
             license="MIT",
         ),
@@ -434,7 +440,10 @@ def get_default_catalog() -> List[ModelProfile]:
             speed_class=SpeedClass.SLOW,
             quality_class=QualityClass.FRONTIER,
             use_cases=["coding", "reasoning", "general_chat", "rag"],
-            pros=["Matches top proprietary models in coding & math", "Incredible instruction fidelity"],
+            pros=[
+                "Matches top proprietary models in coding & math",
+                "Incredible instruction fidelity",
+            ],
             cons=["Requires 24GB+ VRAM or 32GB+ system RAM"],
             license="Apache-2.0",
         ),
@@ -481,7 +490,10 @@ def get_default_catalog() -> List[ModelProfile]:
             speed_class=SpeedClass.VERY_SLOW,
             quality_class=QualityClass.FRONTIER,
             use_cases=["reasoning", "coding", "general_chat", "rag"],
-            pros=["True frontier level intelligence", "Deep comprehension and complex multi-agent execution"],
+            pros=[
+                "True frontier level intelligence",
+                "Deep comprehension and complex multi-agent execution",
+            ],
             cons=["Extremely heavy RAM/VRAM requirements (48GB+ VRAM ideal)"],
             license="Llama-3.1 Community License",
         ),

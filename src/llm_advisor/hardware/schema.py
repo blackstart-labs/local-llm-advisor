@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import List, Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -34,8 +34,8 @@ class CpuInfo(BaseModel, frozen=True):
     architecture: str = "x86_64"
     physical_cores: int = 1
     logical_cores: int = 1
-    frequency_ghz: Optional[float] = None
-    instruction_sets: List[str] = Field(default_factory=list)
+    frequency_ghz: float | None = None
+    instruction_sets: list[str] = Field(default_factory=list)
     is_64bit: bool = True
 
     @property
@@ -74,7 +74,7 @@ class GpuInfo(BaseModel, frozen=True):
     vendor: GpuVendor = GpuVendor.UNKNOWN
     name: str = "Unknown GPU"
     vram_bytes: int = 0
-    driver_version: Optional[str] = None
+    driver_version: str | None = None
     cuda_available: bool = False
     rocm_available: bool = False
     metal_available: bool = False
@@ -109,7 +109,7 @@ class OsInfo(BaseModel, frozen=True):
     release: str
     version: str
     architecture: str
-    kernel_version: Optional[str] = None
+    kernel_version: str | None = None
 
     @property
     def summary_string(self) -> str:
@@ -134,13 +134,13 @@ class HardwareProfile(BaseModel, frozen=True):
 
     cpu: CpuInfo
     memory: MemoryInfo
-    gpus: List[GpuInfo] = Field(default_factory=list)
+    gpus: list[GpuInfo] = Field(default_factory=list)
     storage: StorageInfo
     os_info: OsInfo
     runtime: RuntimeCapabilities
 
     @property
-    def primary_gpu(self) -> Optional[GpuInfo]:
+    def primary_gpu(self) -> GpuInfo | None:
         """Return primary GPU with highest VRAM if available."""
         if not self.gpus:
             return None

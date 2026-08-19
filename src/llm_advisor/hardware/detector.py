@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+
 from llm_advisor.hardware.cpu import detect_cpu
 from llm_advisor.hardware.gpu import detect_gpus
 from llm_advisor.hardware.memory import detect_memory

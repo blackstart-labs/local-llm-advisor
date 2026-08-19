@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import List, Optional
+
 from pydantic import BaseModel, Field
 
 from llm_advisor.analysis.requirements import calculate_total_memory_required_gb
@@ -22,9 +22,7 @@ class CompatibilityLevel(str, Enum):
 
     @property
     def badge_emoji(self) -> str:
-        if self == CompatibilityLevel.EXCELLENT:
-            return "🟢"
-        elif self == CompatibilityLevel.GOOD:
+        if self == CompatibilityLevel.EXCELLENT or self == CompatibilityLevel.GOOD:
             return "🟢"
         elif self == CompatibilityLevel.POSSIBLE:
             return "🟡"
@@ -47,8 +45,8 @@ class CompatibilityResult(BaseModel, frozen=True):
     vram_headroom_percent: float = 0.0
     ram_headroom_percent: float = 0.0
     context_length_evaluated: int
-    reasons: List[str] = Field(default_factory=list)
-    warnings: List[str] = Field(default_factory=list)
+    reasons: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
 
 
 class CompatibilityEngine:
@@ -59,7 +57,7 @@ class CompatibilityEngine:
         hardware: HardwareProfile,
         model: ModelProfile,
         quantization_level: QuantizationLevel,
-        context_length: Optional[int] = None,
+        context_length: int | None = None,
     ) -> CompatibilityResult:
         quant = model.get_quantization(quantization_level)
         if not quant:
@@ -79,7 +77,9 @@ class CompatibilityEngine:
             rec_ram = quant.recommended_ram_gb
             rec_vram = quant.recommended_vram_gb
 
-        eval_context = context_length if context_length is not None else min(8192, model.context_length)
+        eval_context = (
+            context_length if context_length is not None else min(8192, model.context_length)
+        )
         req_memory_gb = calculate_total_memory_required_gb(
             file_size_gb=file_gb,
             param_count_billions=model.parameter_count_billions,
@@ -95,23 +95,31 @@ class CompatibilityEngine:
         fits_in_ram = safe_ram_gb >= req_memory_gb or safe_ram_gb >= rec_ram
 
         vram_headroom = ((vram_gb - req_memory_gb) / vram_gb * 100.0) if vram_gb > 0 else 0.0
-        ram_headroom = ((safe_ram_gb - req_memory_gb) / safe_ram_gb * 100.0) if safe_ram_gb > 0 else 0.0
+        ram_headroom = (
+            ((safe_ram_gb - req_memory_gb) / safe_ram_gb * 100.0) if safe_ram_gb > 0 else 0.0
+        )
 
-        reasons: List[str] = []
-        warnings: List[str] = []
+        reasons: list[str] = []
+        warnings: list[str] = []
 
         # Determine compatibility tier
         if fits_in_vram and vram_headroom >= 25.0:
             level = CompatibilityLevel.EXCELLENT
-            reasons.append(f"Fits comfortably in GPU VRAM ({vram_gb:.1f} GB available, {vram_headroom:.0f}% headroom)")
+            reasons.append(
+                f"Fits comfortably in GPU VRAM ({vram_gb:.1f} GB available, {vram_headroom:.0f}% headroom)"
+            )
         elif fits_in_vram:
             level = CompatibilityLevel.GOOD
             reasons.append(f"Fits in GPU VRAM with moderate headroom ({vram_headroom:.0f}%)")
         elif fits_in_ram and ram_headroom >= 20.0:
             level = CompatibilityLevel.GOOD
-            reasons.append(f"Fits comfortably in safe system RAM ({safe_ram_gb:.1f} GB safe budget)")
+            reasons.append(
+                f"Fits comfortably in safe system RAM ({safe_ram_gb:.1f} GB safe budget)"
+            )
             if vram_gb > 0:
-                warnings.append("VRAM insufficient for full GPU offload; will run via CPU/RAM offloading")
+                warnings.append(
+                    "VRAM insufficient for full GPU offload; will run via CPU/RAM offloading"
+                )
             else:
                 reasons.append("Running on CPU + RAM")
         elif fits_in_ram:
@@ -124,13 +132,17 @@ class CompatibilityEngine:
             warnings.append("High risk of system slowdown or OS memory pressure")
         else:
             level = CompatibilityLevel.NOT_RECOMMENDED
-            reasons.append(f"Required memory ({req_memory_gb:.1f} GB) exceeds available RAM ({total_ram_gb:.1f} GB)")
+            reasons.append(
+                f"Required memory ({req_memory_gb:.1f} GB) exceeds available RAM ({total_ram_gb:.1f} GB)"
+            )
 
         # Disk space check
         if hardware.storage.free_gb < file_gb + 2.0:
             if level != CompatibilityLevel.NOT_RECOMMENDED:
                 level = CompatibilityLevel.BORDERLINE
-            warnings.append(f"Disk space low ({hardware.storage.free_gb:.1f} GB free, model weights need {file_gb:.1f} GB)")
+            warnings.append(
+                f"Disk space low ({hardware.storage.free_gb:.1f} GB free, model weights need {file_gb:.1f} GB)"
+            )
 
         return CompatibilityResult(
             model_id=model.id,

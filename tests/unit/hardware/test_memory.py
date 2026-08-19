@@ -1,7 +1,8 @@
 """Tests for memory detection and safe inference budget calculations."""
 
 from unittest.mock import MagicMock, patch
-from llm_advisor.hardware.memory import detect_memory, calculate_safe_budget
+
+from llm_advisor.hardware.memory import calculate_safe_budget, detect_memory
 
 
 def test_calculate_safe_budget_standard_16gb() -> None:

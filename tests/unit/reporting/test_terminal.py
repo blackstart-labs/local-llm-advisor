@@ -1,7 +1,10 @@
 """Tests for Rich terminal renderer."""
 
 from io import StringIO
+
 from rich.console import Console
+
+from llm_advisor.analysis.recommender import RecommendationEngine, RecommendationReport
 from llm_advisor.hardware.schema import (
     CpuInfo,
     GpuInfo,
@@ -12,7 +15,6 @@ from llm_advisor.hardware.schema import (
     RuntimeCapabilities,
     StorageInfo,
 )
-from llm_advisor.analysis.recommender import RecommendationEngine, RecommendationReport
 from llm_advisor.reporting.terminal import render_terminal_report
 
 

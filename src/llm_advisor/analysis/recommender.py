@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 
 from llm_advisor.analysis.compatibility import (
@@ -25,13 +24,13 @@ class Recommendation(BaseModel, frozen=True):
     compatibility: CompatibilityResult
     score: int
     score_result: ScoreResult
-    best_for: List[str]
-    why_recommended: List[str]
-    pros: List[str]
-    cons: List[str]
+    best_for: list[str]
+    why_recommended: list[str]
+    pros: list[str]
+    cons: list[str]
     suggested_runtime: str
     suggested_context_range: str
-    alternative_model_id: Optional[str] = None
+    alternative_model_id: str | None = None
 
 
 class RecommendationReport(BaseModel, frozen=True):
@@ -42,8 +41,8 @@ class RecommendationReport(BaseModel, frozen=True):
     overall_rating_text: str
     primary_bottleneck: str
     recommended_model_size_class: str
-    top_recommendations: List[Recommendation] = Field(default_factory=list)
-    by_purpose: Dict[str, List[Recommendation]] = Field(default_factory=dict)
+    top_recommendations: list[Recommendation] = Field(default_factory=list)
+    by_purpose: dict[str, list[Recommendation]] = Field(default_factory=dict)
     confidence: ConfidenceLevel = ConfidenceLevel.HIGH
 
 
@@ -52,29 +51,31 @@ class RecommendationEngine:
 
     def __init__(
         self,
-        registry: Optional[ModelRegistry] = None,
-        compatibility_engine: Optional[CompatibilityEngine] = None,
-        scoring_engine: Optional[ScoringEngine] = None,
+        registry: ModelRegistry | None = None,
+        compatibility_engine: CompatibilityEngine | None = None,
+        scoring_engine: ScoringEngine | None = None,
     ) -> None:
         self.registry = registry if registry is not None else DefaultModelRegistry()
-        self.compat_engine = compatibility_engine if compatibility_engine is not None else CompatibilityEngine()
+        self.compat_engine = (
+            compatibility_engine if compatibility_engine is not None else CompatibilityEngine()
+        )
         self.scoring_engine = scoring_engine if scoring_engine is not None else ScoringEngine()
 
     def recommend(
         self,
         hardware: HardwareProfile,
-        purpose: Optional[str] = None,
-        max_ram_gb: Optional[float] = None,
+        purpose: str | None = None,
+        max_ram_gb: float | None = None,
     ) -> RecommendationReport:
         all_models = self.registry.list_all()
-        recommendations: List[Recommendation] = []
+        recommendations: list[Recommendation] = []
 
         for model in all_models:
             # Skip if user requested lower max RAM limit than default model req
             if max_ram_gb and model.parameter_count_billions > max_ram_gb * 1.5:
                 continue
 
-            best_rec: Optional[Recommendation] = None
+            best_rec: Recommendation | None = None
             best_score = -1
 
             for quant in model.supported_quantizations:
@@ -86,7 +87,10 @@ class RecommendationEngine:
 
                     # Suggest optimal runtime
                     runtime_str = "Ollama / llama.cpp"
-                    if hardware.os_info.platform_name == "Darwin" and "arm" in hardware.os_info.architecture.lower():
+                    if (
+                        hardware.os_info.platform_name == "Darwin"
+                        and "arm" in hardware.os_info.architecture.lower()
+                    ):
                         runtime_str = "Ollama / LM Studio (Apple Metal)"
                     elif len(hardware.gpus) > 0 and hardware.gpus[0].cuda_available:
                         runtime_str = "Ollama / llama.cpp (CUDA acceleration)"
@@ -101,7 +105,8 @@ class RecommendationEngine:
                         score=score_res.total_score,
                         score_result=score_res,
                         best_for=model.use_cases[:3],
-                        why_recommended=score_res.why_recommended or [f"Good fit for {model.family} model family"],
+                        why_recommended=score_res.why_recommended
+                        or [f"Good fit for {model.family} model family"],
                         pros=model.pros,
                         cons=model.cons,
                         suggested_runtime=runtime_str,
@@ -115,7 +120,7 @@ class RecommendationEngine:
         recommendations.sort(key=lambda r: r.score, reverse=True)
 
         # Assign ranks
-        ranked_recs: List[Recommendation] = []
+        ranked_recs: list[Recommendation] = []
         for idx, rec in enumerate(recommendations, 1):
             alt_id = recommendations[idx].model.id if idx < len(recommendations) else None
             updated_rec = Recommendation(
@@ -139,15 +144,27 @@ class RecommendationEngine:
         top_list = ranked_recs
         if purpose:
             target_p = purpose.lower().strip()
-            top_list = [r for r in ranked_recs if target_p in [u.lower() for u in r.model.use_cases]] or ranked_recs
+            top_list = [
+                r for r in ranked_recs if target_p in [u.lower() for u in r.model.use_cases]
+            ] or ranked_recs
 
         # Categorize by purpose
-        by_purpose: Dict[str, List[Recommendation]] = {
-            "General Assistant": [r for r in ranked_recs if "general_chat" in [u.lower() for u in r.model.use_cases]][:3],
-            "Coding & Development": [r for r in ranked_recs if "coding" in [u.lower() for u in r.model.use_cases]][:3],
-            "Reasoning & Logic": [r for r in ranked_recs if "reasoning" in [u.lower() for u in r.model.use_cases]][:3],
-            "Local RAG": [r for r in ranked_recs if "rag" in [u.lower() for u in r.model.use_cases]][:3],
-            "Lightweight / Fast": [r for r in ranked_recs if "lightweight" in [u.lower() for u in r.model.use_cases]][:3],
+        by_purpose: dict[str, list[Recommendation]] = {
+            "General Assistant": [
+                r for r in ranked_recs if "general_chat" in [u.lower() for u in r.model.use_cases]
+            ][:3],
+            "Coding & Development": [
+                r for r in ranked_recs if "coding" in [u.lower() for u in r.model.use_cases]
+            ][:3],
+            "Reasoning & Logic": [
+                r for r in ranked_recs if "reasoning" in [u.lower() for u in r.model.use_cases]
+            ][:3],
+            "Local RAG": [
+                r for r in ranked_recs if "rag" in [u.lower() for u in r.model.use_cases]
+            ][:3],
+            "Lightweight / Fast": [
+                r for r in ranked_recs if "lightweight" in [u.lower() for u in r.model.use_cases]
+            ][:3],
         }
 
         # Overall machine capability rating

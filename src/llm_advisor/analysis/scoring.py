@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import List
+
 from pydantic import BaseModel, Field
 
 from llm_advisor.analysis.compatibility import CompatibilityLevel, CompatibilityResult
-from llm_advisor.hardware.schema import GpuVendor, HardwareProfile
+from llm_advisor.hardware.schema import HardwareProfile
 from llm_advisor.models.schema import ModelProfile, QualityClass, SpeedClass
 
 
@@ -47,10 +47,10 @@ class ScoreResult(BaseModel, frozen=True):
     total_score: int
     breakdown: ScoreBreakdown
     confidence: ConfidenceLevel
-    why_recommended: List[str] = Field(default_factory=list)
-    why_not_recommended: List[str] = Field(default_factory=list)
-    bottlenecks: List[str] = Field(default_factory=list)
-    upgrade_suggestions: List[str] = Field(default_factory=list)
+    why_recommended: list[str] = Field(default_factory=list)
+    why_not_recommended: list[str] = Field(default_factory=list)
+    bottlenecks: list[str] = Field(default_factory=list)
+    upgrade_suggestions: list[str] = Field(default_factory=list)
 
 
 class ScoringEngine:
@@ -146,13 +146,15 @@ class ScoringEngine:
             confidence = ConfidenceLevel.LOW
 
         # Explainability text generation
-        why_rec: List[str] = []
-        why_not_rec: List[str] = []
-        bottlenecks: List[str] = []
-        upgrades: List[str] = []
+        why_rec: list[str] = []
+        why_not_rec: list[str] = []
+        bottlenecks: list[str] = []
+        upgrades: list[str] = []
 
         if compatibility.level in (CompatibilityLevel.EXCELLENT, CompatibilityLevel.GOOD):
-            why_rec.append(f"Comfortably fits within available memory ({compatibility.required_memory_gb:.1f} GB required)")
+            why_rec.append(
+                f"Comfortably fits within available memory ({compatibility.required_memory_gb:.1f} GB required)"
+            )
             if compatibility.fits_in_vram:
                 why_rec.append("Full GPU acceleration supported with high token output speed")
             else:
@@ -162,14 +164,24 @@ class ScoringEngine:
             if model.reasoning_strength >= 8.0:
                 why_rec.append("High logic and step-by-step reasoning quality")
         else:
-            why_not_rec.append(f"Heavy resource requirements ({compatibility.required_memory_gb:.1f} GB required)")
+            why_not_rec.append(
+                f"Heavy resource requirements ({compatibility.required_memory_gb:.1f} GB required)"
+            )
 
         if not has_gpu:
-            bottlenecks.append("No dedicated GPU acceleration detected; inference will run entirely on CPU")
-            upgrades.append("Adding a dedicated NVIDIA/Apple/AMD GPU with 8GB+ VRAM will boost speeds 5x–10x")
+            bottlenecks.append(
+                "No dedicated GPU acceleration detected; inference will run entirely on CPU"
+            )
+            upgrades.append(
+                "Adding a dedicated NVIDIA/Apple/AMD GPU with 8GB+ VRAM will boost speeds 5x–10x"
+            )
         elif not compatibility.fits_in_vram and hardware.total_vram_gb > 0:
-            bottlenecks.append(f"VRAM ({hardware.total_vram_gb:.1f} GB) is smaller than model requirements")
-            upgrades.append(f"Upgrading to a GPU with at least {compatibility.required_memory_gb:.0f}GB VRAM would allow full GPU offloading")
+            bottlenecks.append(
+                f"VRAM ({hardware.total_vram_gb:.1f} GB) is smaller than model requirements"
+            )
+            upgrades.append(
+                f"Upgrading to a GPU with at least {compatibility.required_memory_gb:.0f}GB VRAM would allow full GPU offloading"
+            )
 
         if hardware.memory.safe_budget_gb < 8.0:
             bottlenecks.append("Available system RAM is limited (< 8GB safe budget)")

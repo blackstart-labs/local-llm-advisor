@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import List, Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -60,7 +60,7 @@ class ModelProfile(BaseModel, frozen=True):
     parameter_count_billions: float
     architecture: str = "Dense Transformer"
     context_length: int = 8192
-    supported_quantizations: List[QuantizationProfile] = Field(default_factory=list)
+    supported_quantizations: list[QuantizationProfile] = Field(default_factory=list)
     default_quantization: QuantizationLevel = QuantizationLevel.Q4_K_M
 
     # Capability Strengths (0.0 to 10.0 scale)
@@ -72,14 +72,14 @@ class ModelProfile(BaseModel, frozen=True):
 
     speed_class: SpeedClass = SpeedClass.MODERATE
     quality_class: QualityClass = QualityClass.HIGH
-    use_cases: List[str] = Field(default_factory=list)
-    pros: List[str] = Field(default_factory=list)
-    cons: List[str] = Field(default_factory=list)
-    runtime_support: List[str] = Field(default_factory=lambda: ["ollama", "llamacpp", "lmstudio"])
+    use_cases: list[str] = Field(default_factory=list)
+    pros: list[str] = Field(default_factory=list)
+    cons: list[str] = Field(default_factory=list)
+    runtime_support: list[str] = Field(default_factory=lambda: ["ollama", "llamacpp", "lmstudio"])
     license: str = "Apache-2.0"
-    notes: Optional[str] = None
+    notes: str | None = None
 
-    def get_quantization(self, level: QuantizationLevel) -> Optional[QuantizationProfile]:
+    def get_quantization(self, level: QuantizationLevel) -> QuantizationProfile | None:
         """Find quantization profile for a given precision level."""
         for q in self.supported_quantizations:
             if q.level == level:
