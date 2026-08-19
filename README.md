@@ -8,7 +8,13 @@
 
 ---
 
-![Local LLM Hardware Advisor Terminal Report](./docs/images/terminal-preview.png)
+## Interface Previews
+
+### Rich Terminal Report
+![Local LLM Hardware Advisor Terminal Report](docs/images/terminal-preview.png)
+
+### Standalone HTML Dashboard Report
+![Local LLM Hardware Advisor HTML Dashboard](docs/images/html-dashboard-preview.png)
 
 ---
 
