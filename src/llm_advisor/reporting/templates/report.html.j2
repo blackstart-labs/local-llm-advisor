@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Local LLM Hardware Advisor — Hardware Compatibility Report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-body: #080b11;
+      --bg-surface: #0f1420;
+      --bg-surface-hover: #161c2d;
+      --border-subtle: #1a2235;
+      --border-accent: rgba(56, 189, 248, 0.35);
+      
+      --text-heading: #f8fafc;
+      --text-body: #cbd5e1;
+      --text-muted: #8492a6;
+      --text-dim: #475569;
+      
+      --accent-blue: #38bdf8;
+      --accent-indigo: #6366f1;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      
+      --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-full: 9999px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.08), transparent 40%),
+        radial-gradient(circle at 90% 90%, rgba(99, 102, 241, 0.05), transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-body);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding: 2.5rem 1.5rem;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    /* Professional Top Navbar */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.75rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-full);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-logo {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-indigo));
+      display: flex; align-items: center; justify-content: center;
+      color: #000; font-weight: 800; font-size: 1.1rem;
+    }
+
+    .brand-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: var(--text-heading);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.4rem 1rem;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: var(--radius-full);
+      color: var(--accent-emerald);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .pulse-dot {
+      width: 8px; height: 8px;
+      background-color: var(--accent-emerald);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--accent-emerald);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      70% { transform: scale(1.1); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+
+    /* Hero Header */
+    .hero {
+      margin-bottom: 3rem;
+    }
+
+    .hero-title {
+      font-size: 2.75rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text-heading);
+      margin-bottom: 0.5rem;
+      line-height: 1.15;
+    }
+
+    .hero-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 760px;
+    }
+
+    /* Hardware Overview Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      transition: all 0.2s ease;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    .card:hover {
+      border-color: var(--border-accent);
+      background: var(--bg-surface-hover);
+      transform: translateY(-2px);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-label {
+      font-size: 0.775rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .card-icon {
+      width: 32px; height: 32px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--accent-blue);
+    }
+
+    .card-icon svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+    .card-val {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--text-heading);
+      letter-spacing: -0.01em;
+      margin-bottom: 0.25rem;
+    }
+
+    .card-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Assessment Callout */
+    .assessment-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-left: 4px solid var(--accent-amber);
+      border-radius: var(--radius-md);
+      padding: 1.75rem 2rem;
+      margin-bottom: 3.5rem;
+    }
+
+    .badge-capsule {
+      display: inline-block;
+      padding: 0.35rem 1rem;
+      border-radius: var(--radius-full);
+      font-size: 0.875rem;
+      font-weight: 700;
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--accent-amber);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      margin-bottom: 0.75rem;
+    }
+
+    .assessment-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-heading);
+      margin-bottom: 0.4rem;
+    }
+
+    .meta-row {
+      display: flex;
+      gap: 2rem;
+      margin-top: 1.25rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border-subtle);
+      flex-wrap: wrap;
+      font-size: 0.9rem;
+    }
+
+    .meta-row span { color: var(--text-muted); }
+    .meta-row strong { color: var(--accent-blue); }
+
+    /* Section Headers */
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 3.5rem 0 1.5rem 0;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-heading);
+    }
+
+    .search-input {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-full);
+      padding: 0.6rem 1.25rem;
+      color: var(--text-heading);
+      font-family: var(--font-sans);
+      font-size: 0.875rem;
+      width: 300px;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent-blue);
+    }
+
+    /* Recommendations Grid */
+    .rec-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3.5rem;
+    }
+
+    .rec-card {
+      position: relative;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.25s ease;
+    }
+
+    .rec-card:hover {
+      border-color: var(--border-accent);
+      transform: translateY(-4px);
+      box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    .rec-card.rank-top {
+      border-color: rgba(245, 158, 11, 0.4);
+      background: linear-gradient(160deg, rgba(22, 30, 48, 0.95), rgba(15, 20, 32, 0.9));
+    }
+
+    .top-rank-badge {
+      position: absolute;
+      top: -12px; right: 20px;
+      background: linear-gradient(90deg, #f59e0b, #d97706);
+      color: #000;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 0.25rem 0.75rem;
+      border-radius: var(--radius-full);
+      letter-spacing: 0.04em;
+    }
+
+    .rec-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .model-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--text-heading);
+      letter-spacing: -0.01em;
+    }
+
+    .score-chip {
+      padding: 0.4rem 0.75rem;
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: var(--radius-md);
+      text-align: center;
+    }
+
+    .score-num {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--accent-blue);
+      line-height: 1;
+    }
+
+    .score-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .pill-group {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.25rem;
+    }
+
+    .pill {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.25rem 0.6rem;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+    }
+
+    .pill.quant { color: var(--accent-amber); border-color: rgba(245, 158, 11, 0.3); }
+    .pill.fit { color: var(--accent-emerald); border-color: rgba(16, 185, 129, 0.3); }
+
+    .bullet-block {
+      margin-bottom: 1.25rem;
+    }
+
+    .bullet-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.4rem;
+    }
+
+    .bullet-list { list-style: none; }
+    .bullet-list li {
+      font-size: 0.875rem;
+      color: var(--text-body);
+      margin-bottom: 0.35rem;
+      padding-left: 1.2rem;
+      position: relative;
+    }
+
+    .bullet-list li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--accent-emerald);
+      font-weight: 800;
+    }
+
+    .cmd-box {
+      margin-top: 1.25rem;
+      padding: 0.75rem 1rem;
+      background: #04060a;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: 0.825rem;
+      color: var(--accent-blue);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: var(--text-muted);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover { background: var(--accent-blue); color: #000; }
+
+    /* Purpose Tabs */
+    .tabs-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+
+    .tab-item {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 0.6rem 1.25rem;
+      border-radius: var(--radius-full);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .tab-item:hover { color: var(--text-heading); background: var(--bg-surface-hover); }
+
+    .tab-item.active {
+      background: var(--accent-blue);
+      color: #000;
+      border-color: transparent;
+      font-weight: 700;
+    }
+
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* Comparison Table */
+    .table-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 3.5rem;
+    }
+
+    .table-scroll { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      padding: 1rem 1.5rem;
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-muted);
+      font-size: 0.775rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    td {
+      padding: 1.1rem 1.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 0.9rem;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+    /* Interactive Calculator */
+    .calc-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      margin-bottom: 3.5rem;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin: 1.5rem 0;
+      flex-wrap: wrap;
+    }
+
+    .context-slider {
+      flex: 1;
+      min-width: 240px;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.1);
+      outline: none;
+      accent-color: var(--accent-blue);
+    }
+
+    .calc-output {
+      font-family: var(--font-mono);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--accent-blue);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero-title { font-size: 2.2rem; }
+      .rec-grid { grid-template-columns: 1fr; }
+      .navbar { flex-direction: column; align-items: flex-start; }
+      .search-input { width: 100%; }
+    }
+
+    footer {
+      text-align: center;
+      padding: 3rem 0 1rem 0;
+      border-top: 1px solid var(--border-subtle);
+      color: var(--text-dim);
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Navbar Header -->
+    <nav class="navbar">
+      <div class="brand">
+        <div class="brand-logo">⚡</div>
+        <div class="brand-title">Local LLM Advisor</div>
+      </div>
+      <div class="status-badge">
+        <div class="pulse-dot"></div>
+        Analysis Complete • Safe RAM Budget: {{ "%.1f"|format(report.hardware.memory.safe_budget_gb) }} GB
+      </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <header class="hero">
+      <h1 class="hero-title">Hardware Compatibility Report</h1>
+      <p class="hero-subtitle">Deterministic system profiling, VRAM/RAM allocation models, and explainable open-weight LLM recommendations.</p>
+    </header>
+
+    <!-- System Hardware Metrics Grid -->
+    <div class="metrics-grid">
+      <div class="card">
+        <div class="card-top">
+          <span class="card-label">Operating System</span>
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+        </div>
+        <div class="card-val">{{ report.hardware.os_info.platform_name }}</div>
+        <div class="card-sub">{{ report.hardware.os_info.release }} ({{ report.hardware.os_info.architecture }})</div>
+      </div>
+
+      <div class="card">
+        <div class="card-top">
+          <span class="card-label">CPU Cores</span>
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/></svg>
+          </div>
+        </div>
+        <div class="card-val">{{ report.hardware.cpu.brand }}</div>
+        <div class="card-sub">{{ report.hardware.cpu.physical_cores }} Cores / {{ report.hardware.cpu.logical_cores }} Threads</div>
+      </div>
+
+      <div class="card">
+        <div class="card-top">
+          <span class="card-label">System RAM</span>
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24"><path d="M6 19v-3M10 19v-3M14 19v-3M18 19v-3M6 8V5M10 8V5M14 8V5M18 8V5M2 8h20v8H2z"/></svg>
+          </div>
+        </div>
+        <div class="card-val">{{ "%.1f"|format(report.hardware.memory.total_gb) }} GB</div>
+        <div class="card-sub">Safe Budget: <strong>{{ "%.1f"|format(report.hardware.memory.safe_budget_gb) }} GB</strong></div>
+      </div>
+
+      <div class="card">
+        <div class="card-top">
+          <span class="card-label">GPU Acceleration</span>
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+        </div>
+        <div class="card-val">
+          {% if report.hardware.gpus %}
+            {{ report.hardware.gpus[0].vendor.value }}
+          {% else %}
+            CPU Only
+          {% endif %}
+        </div>
+        <div class="card-sub">
+          {% if report.hardware.gpus %}
+            {{ "%.1f"|format(report.hardware.gpus[0].vram_gb) }} GB VRAM
+          {% else %}
+            No Dedicated VRAM
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-top">
+          <span class="card-label">Disk Storage</span>
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24"><line x1="22" y1="12" x2="2" y2="12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+          </div>
+        </div>
+        <div class="card-val">{{ "%.1f"|format(report.hardware.storage.free_gb) }} GB</div>
+        <div class="card-sub">Free Space ({{ report.hardware.storage.storage_type.value }})</div>
+      </div>
+    </div>
+
+    <!-- Machine Assessment Callout -->
+    <div class="assessment-box">
+      <div class="badge-capsule">{{ report.overall_rating_badge }}</div>
+      <div class="assessment-title">Hardware Inference Assessment</div>
+      <div style="font-size:1rem; color:var(--text-muted);">{{ report.overall_rating_text }}</div>
+      
+      <div class="meta-row">
+        <div>Primary Bottleneck: <strong>{{ report.primary_bottleneck }}</strong></div>
+        <div>Recommended Model Class: <strong>{{ report.recommended_model_size_class }}</strong></div>
+      </div>
+    </div>
+
+    <!-- Top Recommendations Cards -->
+    <div class="section-head">
+      <h2 class="section-title">Top Recommended Models</h2>
+      <input type="text" id="modelSearch" class="search-input" placeholder="Filter models by name..." onkeyup="filterCards()">
+    </div>
+
+    <div class="rec-grid" id="recGrid">
+      {% for rec in report.top_recommendations %}
+      <div class="rec-card {% if loop.first %}rank-top{% endif %}" data-name="{{ rec.model.name.lower() }}">
+        {% if loop.first %}
+          <div class="top-rank-badge">#1 BEST FIT</div>
+        {% endif %}
+
+        <div>
+          <div class="rec-head">
+            <div class="model-title">{{ rec.model.name }}</div>
+            <div class="score-chip">
+              <div class="score-num">{{ rec.score }}</div>
+              <div class="score-label">SCORE</div>
+            </div>
+          </div>
+
+          <div class="pill-group">
+            <span class="pill quant">{{ rec.recommended_quantization.value }}</span>
+            <span class="pill fit">{{ rec.compatibility.level.badge_emoji }} {{ rec.compatibility.level.value }}</span>
+            <span class="pill">{{ rec.model.parameter_count_billions }}B Params</span>
+          </div>
+
+          <div class="bullet-block">
+            <div class="bullet-label">Why Recommended</div>
+            <ul class="bullet-list">
+              {% for why in rec.why_recommended %}
+                <li>{{ why }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+
+          <div class="bullet-block">
+            <div class="bullet-label">Best Use Cases</div>
+            <p style="font-size:0.875rem; color:var(--accent-blue); font-weight:600;">
+              {{ rec.best_for | join(' • ') }}
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <div class="cmd-box">
+            <code>ollama run {{ rec.model.id }}</code>
+            <button class="copy-btn" onclick="copyCmd(this, 'ollama run {{ rec.model.id }}')">Copy</button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Interactive Context Calculator -->
+    <div class="section-head">
+      <h2 class="section-title">Interactive KV Cache Calculator</h2>
+    </div>
+
+    <div class="calc-card">
+      <h3 style="font-size:1.15rem; color:var(--text-heading); margin-bottom:0.4rem;">Context Window Memory Overhead</h3>
+      <p style="color:var(--text-muted); font-size:0.9rem;">
+        Drag the context slider to inspect Key-Value (KV) cache memory overhead added to the base model weights during inference.
+      </p>
+
+      <div class="slider-row">
+        <label for="ctxRange" style="font-weight:600; font-size:0.9rem;">Context Length:</label>
+        <input type="range" id="ctxRange" class="context-slider" min="4096" max="131072" step="4096" value="16384" oninput="calcKvMemory()">
+        <span id="ctxLabel" style="font-family:var(--font-mono); font-weight:700; color:var(--accent-amber);">16,384 tokens</span>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; padding-top:1rem; border-top:1px solid var(--border-subtle); font-size:0.9rem;">
+        <div>7B Model KV Cache: <span id="kv7b" class="calc-output">0.23 GB</span></div>
+        <div>14B Model KV Cache: <span id="kv14b" class="calc-output">0.46 GB</span></div>
+      </div>
+    </div>
+
+    <!-- Purpose Recommendations Matrix Table -->
+    <div class="section-head">
+      <h2 class="section-title">Purpose-Specific Model Matrix</h2>
+    </div>
+
+    <div class="tabs-bar">
+      {% for purpose_name, recs in report.by_purpose.items() %}
+        <button class="tab-item {% if loop.first %}active{% endif %}" onclick="selectTab(event, 'tab-pane-{{ loop.index }}')">
+          {{ purpose_name }}
+        </button>
+      {% endfor %}
+    </div>
+
+    {% for purpose_name, recs in report.by_purpose.items() %}
+    <div id="tab-pane-{{ loop.index }}" class="tab-pane {% if loop.first %}active{% endif %}">
+      <div class="table-box">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Model Name</th>
+                <th>Quantization</th>
+                <th>Compatibility Tier</th>
+                <th>Score</th>
+                <th>Context Window</th>
+                <th>Quick Run</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for rec in recs %}
+              <tr>
+                <td><strong>{{ rec.model.name }}</strong></td>
+                <td><span class="pill quant">{{ rec.recommended_quantization.value }}</span></td>
+                <td><span class="pill fit">{{ rec.compatibility.level.badge_emoji }} {{ rec.compatibility.level.value }}</span></td>
+                <td><strong style="color:var(--accent-blue);">{{ rec.score }}/100</strong></td>
+                <td>{{ rec.suggested_context_range }}</td>
+                <td><code style="font-family:var(--font-mono); color:var(--accent-blue); font-size:0.85rem;">ollama run {{ rec.model.id }}</code></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <!-- Methodology Section -->
+    <div class="section-head">
+      <h2 class="section-title">Methodology & Scoring Architecture</h2>
+    </div>
+
+    <div class="assessment-box" style="border-left-color: var(--accent-blue);">
+      <div class="banner-title">Multi-Factor Scoring Matrix</div>
+      <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:1rem;">
+        Hardware compatibility is evaluated deterministically on a 0–100 scale:
+      </p>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; font-size:0.875rem;">
+        <div><strong>Hardware Fit (30%):</strong> Memory headroom & GPU acceleration.</div>
+        <div><strong>Memory Safety (20%):</strong> Safe budget vs OS thrashing limit.</div>
+        <div><strong>Speed Class (20%):</strong> Latency tier & CPU offload penalty.</div>
+        <div><strong>Model Quality (20%):</strong> Benchmark intelligence rating.</div>
+        <div><strong>Context Window (10%):</strong> KV Cache scaling overhead.</div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>Local LLM Hardware Advisor • Built with Python 3.10+, Rich & Jinja2 • 100% Offline & Private</p>
+    </footer>
+  </div>
+
+  <script>
+    function selectTab(evt, paneId) {
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-item').forEach(b => b.classList.remove('active'));
+      document.getElementById(paneId).classList.add('active');
+      evt.currentTarget.classList.add('active');
+    }
+
+    function filterCards() {
+      const q = document.getElementById('modelSearch').value.toLowerCase().trim();
+      document.querySelectorAll('#recGrid .rec-card').forEach(c => {
+        const name = c.getAttribute('data-name') || '';
+        c.style.display = name.includes(q) ? 'flex' : 'none';
+      });
+    }
+
+    function copyCmd(btn, txt) {
+      navigator.clipboard.writeText(txt);
+      const orig = btn.innerText;
+      btn.innerText = 'Copied!';
+      setTimeout(() => btn.innerText = orig, 1500);
+    }
+
+    function calcKvMemory() {
+      const ctx = parseInt(document.getElementById('ctxRange').value, 10);
+      document.getElementById('ctxLabel').innerText = ctx.toLocaleString() + ' tokens';
+      document.getElementById('kv7b').innerText = ((ctx * 7.0) / 500000.0).toFixed(2) + ' GB';
+      document.getElementById('kv14b').innerText = ((ctx * 14.0) / 500000.0).toFixed(2) + ' GB';
+    }
+
+    calcKvMemory();
+  </script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+{
+  "cpu": {
+    "brand": "Apple",
+    "model": "M3 Max",
+    "architecture": "arm64",
+    "physical_cores": 16,
+    "logical_cores": 16,
+    "frequency_ghz": 4.0,
+    "instruction_sets": ["NEON"],
+    "is_64bit": true
+  },
+  "memory": {
+    "total_bytes": 68719476736,
+    "available_bytes": 51539607552,
+    "used_bytes": 17179869184,
+    "utilization_percent": 25.0,
+    "safe_budget_bytes": 41231686016
+  },
+  "gpus": [
+    {
+      "vendor": "Apple",
+      "name": "Apple Silicon Metal GPU (Unified Memory)",
+      "vram_bytes": 68719476736,
+      "driver_version": "Metal 3",
+      "cuda_available": false,
+      "rocm_available": false,
+      "metal_available": true,
+      "is_unified_memory": true
+    }
+  ],
+  "storage": {
+    "free_bytes": 500000000000,
+    "total_bytes": 2000000000000,
+    "filesystem": "apfs",
+    "storage_type": "SSD"
+  },
+  "os_info": {
+    "platform_name": "Darwin",
+    "release": "23.4.0",
+    "version": "macOS 14.4",
+    "architecture": "arm64",
+    "kernel_version": "Darwin 23.4.0"
+  },
+  "runtime": {
+    "has_ollama": true,
+    "has_llamacpp": true,
+    "has_lmstudio": true,
+    "has_open_webui": false,
+    "has_cuda": false,
+    "has_rocm": false,
+    "has_vulkan": false,
+    "has_metal": true
+  }
+}
