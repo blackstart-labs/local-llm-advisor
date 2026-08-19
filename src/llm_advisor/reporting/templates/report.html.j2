@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Local LLM Hardware Advisor Report</title>
+  <style>
+    :root {
+      --color-bg: #0f172a;
+      --color-surface: #1e293b;
+      --color-surface-hover: #334155;
+      --color-border: #334155;
+      --color-text: #f8fafc;
+      --color-muted: #94a3b8;
+      --color-accent: #38bdf8;
+      --color-success: #22c55e;
+      --color-warning: #eab308;
+      --color-danger: #ef4444;
+      --color-info: #6366f1;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-family);
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      padding: 2rem;
+      background: linear-gradient(135deg, rgba(30,41,59,0.8), rgba(15,23,42,0.9));
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      backdrop-filter: blur(10px);
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      color: var(--color-accent);
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      color: var(--color-muted);
+      font-size: 1.1rem;
+    }
+
+    .grid-metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .metric-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--color-accent);
+    }
+
+    .metric-label {
+      font-size: 0.85rem;
+      color: var(--color-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.4rem;
+    }
+
+    .metric-value {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--color-text);
+    }
+
+    .metric-sub {
+      font-size: 0.85rem;
+      color: var(--color-accent);
+      margin-top: 0.3rem;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      color: var(--color-text);
+      margin: 2.5rem 0 1.25rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--color-border);
+    }
+
+    .assessment-box {
+      background: linear-gradient(135deg, rgba(234,179,8,0.1), rgba(30,41,59,0.8));
+      border: 1px solid var(--color-warning);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.3rem 0.8rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-success { background: rgba(34,197,94,0.2); color: var(--color-success); border: 1px solid var(--color-success); }
+    .badge-warning { background: rgba(234,179,8,0.2); color: var(--color-warning); border: 1px solid var(--color-warning); }
+    .badge-danger { background: rgba(239,68,68,0.2); color: var(--color-danger); border: 1px solid var(--color-danger); }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .recommendation-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .rec-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+
+    .rec-title { font-size: 1.25rem; font-weight: 700; color: var(--color-text); }
+    .rec-score { font-size: 1.4rem; font-weight: 800; color: var(--color-accent); }
+
+    .rec-meta { font-size: 0.9rem; color: var(--color-muted); margin-bottom: 1rem; }
+
+    .bullet-list { list-style: none; margin-bottom: 1rem; }
+    .bullet-list li { font-size: 0.9rem; margin-bottom: 0.4rem; padding-left: 1.2rem; position: relative; }
+    .bullet-list li::before { content: '•'; position: absolute; left: 0; color: var(--color-accent); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--color-surface);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin-bottom: 2.5rem;
+    }
+
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    th { background: rgba(51,65,85,0.5); color: var(--color-muted); font-weight: 600; }
+
+    /* Purpose Tabs */
+    .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .tab-btn {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      color: var(--color-text);
+      padding: 0.6rem 1.2rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .tab-btn.active, .tab-btn:hover {
+      background: var(--color-accent);
+      color: #000;
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    footer {
+      text-align: center;
+      color: var(--color-muted);
+      font-size: 0.85rem;
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--color-border);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Local LLM Hardware Advisor</h1>
+      <p>Data-backed local machine analysis and explainable model recommendations</p>
+    </header>
+
+    <h2 class="section-title">Hardware Profile</h2>
+    <div class="grid-metrics">
+      <div class="metric-card">
+        <div class="metric-label">Operating System</div>
+        <div class="metric-value">{{ report.hardware.os_info.platform_name }}</div>
+        <div class="metric-sub">{{ report.hardware.os_info.release }} ({{ report.hardware.os_info.architecture }})</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">CPU</div>
+        <div class="metric-value">{{ report.hardware.cpu.brand }}</div>
+        <div class="metric-sub">{{ report.hardware.cpu.physical_cores }} cores / {{ report.hardware.cpu.logical_cores }} threads</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">System RAM</div>
+        <div class="metric-value">{{ "%.1f"|format(report.hardware.memory.total_gb) }} GB</div>
+        <div class="metric-sub">Safe Budget: {{ "%.1f"|format(report.hardware.memory.safe_budget_gb) }} GB</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">GPU Acceleration</div>
+        <div class="metric-value">
+          {% if report.hardware.gpus %}
+            {{ report.hardware.gpus[0].vendor.value }}
+          {% else %}
+            CPU Only
+          {% endif %}
+        </div>
+        <div class="metric-sub">
+          {% if report.hardware.gpus %}
+            {{ "%.1f"|format(report.hardware.gpus[0].vram_gb) }} GB VRAM
+          {% else %}
+            No dedicated VRAM
+          {% endif %}
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Storage</div>
+        <div class="metric-value">{{ "%.1f"|format(report.hardware.storage.free_gb) }} GB Free</div>
+        <div class="metric-sub">{{ report.hardware.storage.storage_type.value }}</div>
+      </div>
+    </div>
+
+    <div class="assessment-box">
+      <span class="badge badge-warning">{{ report.overall_rating_badge }}</span>
+      <h3 style="margin-top:0.75rem; font-size:1.3rem;">Machine Assessment</h3>
+      <p style="margin-top:0.4rem; color:var(--color-text);">{{ report.overall_rating_text }}</p>
+      <p style="margin-top:0.4rem; font-size:0.9rem; color:var(--color-muted);">
+        <strong>Primary Bottleneck:</strong> {{ report.primary_bottleneck }} | 
+        <strong>Recommended Model Class:</strong> {{ report.recommended_model_size_class }}
+      </p>
+    </div>
+
+    <h2 class="section-title">Top Recommendations</h2>
+    <div class="card-grid">
+      {% for rec in report.top_recommendations %}
+      <div class="recommendation-card">
+        <div>
+          <div class="rec-header">
+            <div class="rec-title">#{{ rec.rank }} {{ rec.model.name }}</div>
+            <div class="rec-score">{{ rec.score }}/100</div>
+          </div>
+          <div class="rec-meta">
+            Quant: <strong>{{ rec.recommended_quantization.value }}</strong> | 
+            Fit: <span class="badge badge-success">{{ rec.compatibility.level.value }}</span>
+          </div>
+
+          <div style="font-weight:600; font-size:0.9rem; margin-bottom:0.4rem;">Why Recommended:</div>
+          <ul class="bullet-list">
+            {% for why in rec.why_recommended %}
+              <li>{{ why }}</li>
+            {% endfor %}
+          </ul>
+
+          <div style="font-weight:600; font-size:0.9rem; margin-bottom:0.4rem;">Best For:</div>
+          <p style="font-size:0.85rem; color:var(--color-accent); margin-bottom:1rem;">
+            {{ rec.best_for | join(', ') }}
+          </p>
+        </div>
+        <div style="font-size:0.8rem; color:var(--color-muted); border-top:1px solid var(--color-border); padding-top:0.75rem;">
+          Suggested Runtime: <strong>{{ rec.suggested_runtime }}</strong>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <h2 class="section-title">Recommendations by Purpose</h2>
+    <div class="tabs">
+      {% for purpose_name, recs in report.by_purpose.items() %}
+        <button class="tab-btn {% if loop.first %}active{% endif %}" onclick="openTab(event, 'tab-{{ loop.index }}')">
+          {{ purpose_name }}
+        </button>
+      {% endfor %}
+    </div>
+
+    {% for purpose_name, recs in report.by_purpose.items() %}
+    <div id="tab-{{ loop.index }}" class="tab-content {% if loop.first %}active{% endif %}">
+      <table>
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Quantization</th>
+            <th>Compatibility</th>
+            <th>Score</th>
+            <th>Suggested Context</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rec in recs %}
+          <tr>
+            <td><strong>{{ rec.model.name }}</strong></td>
+            <td>{{ rec.recommended_quantization.value }}</td>
+            <td>{{ rec.compatibility.level.badge_emoji }} {{ rec.compatibility.level.value }}</td>
+            <td><strong>{{ rec.score }}</strong></td>
+            <td>{{ rec.suggested_context_range }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endfor %}
+
+    <h2 class="section-title">Quantization & Context Guide</h2>
+    <div class="card-grid">
+      <div class="metric-card">
+        <h3 style="margin-bottom:0.5rem; color:var(--color-accent);">Quantization Tradeoffs</h3>
+        <p style="font-size:0.9rem; color:var(--color-muted);">
+          Lower quantization (e.g. Q4_K_M) reduces RAM requirement by ~50% with minimal loss in perplexity quality (~97% quality retention). Q8_0 offers pristine fidelity but requires double the memory.
+        </p>
+      </div>
+      <div class="metric-card">
+        <h3 style="margin-bottom:0.5rem; color:var(--color-accent);">Context Window Overhead</h3>
+        <p style="font-size:0.9rem; color:var(--color-muted);">
+          Context length isn't free: KV cache memory scales linearly with context length. Running 32K–128K context requires significant extra VRAM/RAM overhead beyond base model weights.
+        </p>
+      </div>
+    </div>
+
+    <h2 class="section-title">Methodology & Explainability</h2>
+    <div class="assessment-box" style="background:var(--color-surface); border-color:var(--color-border);">
+      <h3 style="margin-bottom:0.5rem; color:var(--color-accent);">Scoring Matrix & Mathematical Methodology</h3>
+      <p style="font-size:0.9rem; color:var(--color-muted); margin-bottom:0.75rem;">
+        Recommendations are evaluated through a deterministic 5-factor scoring model (0–100 scale):
+      </p>
+      <ul class="bullet-list" style="color:var(--color-text);">
+        <li><strong>Hardware Fit (30%):</strong> Evaluates VRAM vs safe RAM headroom and hardware acceleration availability.</li>
+        <li><strong>Memory Headroom (20%):</strong> Ensures remaining RAM/VRAM capacity prevents OS swap thrashing.</li>
+        <li><strong>Expected Speed (20%):</strong> Classifies latency tier based on GPU compute vs CPU core offloading.</li>
+        <li><strong>Model Quality (20%):</strong> Factors benchmark intelligence tiers (SOTA frontier vs small task models).</li>
+        <li><strong>Context Support (10%):</strong> Calculates KV cache memory overhead at target context lengths.</li>
+      </ul>
+    </div>
+
+    <footer>
+      <p>Generated by Local LLM Hardware Advisor • Clean, offline, explainable hardware compatibility engine.</p>
+    </footer>
+  </div>
+
+  <script>
+    function openTab(evt, tabId) {
+      const contents = document.querySelectorAll('.tab-content');
+      contents.forEach(c => c.classList.remove('active'));
+
+      const btns = document.querySelectorAll('.tab-btn');
+      btns.forEach(b => b.classList.remove('active'));
+
+      document.getElementById(tabId).classList.add('active');
+      evt.currentTarget.classList.add('active');
+    }
+  </script>
+</body>
+</html>
