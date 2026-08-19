@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import Optional
+
 import typer
 from rich.console import Console
 
@@ -26,27 +26,29 @@ console = Console()
 
 def version_callback(value: bool) -> None:
     if value:
-        console.print(f"[bold cyan]llm-advisor[/bold cyan] version [bold white]{__version__}[/bold white]")
+        console.print(
+            f"[bold cyan]llm-advisor[/bold cyan] version [bold white]{__version__}[/bold white]"
+        )
         raise typer.Exit()
 
 
 @app.callback()
 def main(
-    version: Optional[bool] = typer.Option(
+    version: bool | None = typer.Option(
         None,
         "--version",
         "-v",
         help="Show application version and exit.",
         callback=version_callback,
         is_eager=True,
-    )
+    ),
 ) -> None:
     pass
 
 
 @app.command()
 def scan(
-    output: Optional[str] = typer.Option(
+    output: str | None = typer.Option(
         None,
         "--output",
         "-o",
@@ -82,7 +84,9 @@ def scan(
     if output or open_browser:
         target_path = output if output else "report.html"
         generated_file = generate_html_report(report, output_path=target_path)
-        console.print(f"[bold green]✓[/bold green] Generated HTML report: [bold white]{generated_file}[/bold white]")
+        console.print(
+            f"[bold green]✓[/bold green] Generated HTML report: [bold white]{generated_file}[/bold white]"
+        )
 
         if open_browser:
             console.print("[dim]Opening HTML report in your default browser...[/dim]")
@@ -91,13 +95,13 @@ def scan(
 
 @app.command()
 def recommend(
-    purpose: Optional[str] = typer.Option(
+    purpose: str | None = typer.Option(
         None,
         "--purpose",
         "-p",
         help="Target use-case: coding, reasoning, general, rag, lightweight, privacy.",
     ),
-    ram: Optional[float] = typer.Option(
+    ram: float | None = typer.Option(
         None,
         "--ram",
         help="Simulate maximum RAM limit in GB (e.g. 16.0).",
@@ -141,7 +145,9 @@ def models(
 
     console.print(f"[bold cyan]Registered LLM Catalog ({len(all_models)} models)[/bold cyan]\n")
     for m in all_models:
-        console.print(f"• [bold white]{m.name}[/bold white] ({m.id}) — {m.parameter_count_billions}B params [{m.family}]")
+        console.print(
+            f"• [bold white]{m.name}[/bold white] ({m.id}) — {m.parameter_count_billions}B params [{m.family}]"
+        )
         console.print(f"  Use cases: [dim]{', '.join(m.use_cases)}[/dim]")
 
 
@@ -167,8 +173,12 @@ def model(
         return
 
     console.print(f"[bold cyan]{m.name}[/bold cyan] ({m.id})")
-    console.print(f"Family: [white]{m.family}[/white] | Parameters: [white]{m.parameter_count_billions}B[/white]")
-    console.print(f"Default Context: [white]{m.context_length} tokens[/white] | License: [white]{m.license}[/white]\n")
+    console.print(
+        f"Family: [white]{m.family}[/white] | Parameters: [white]{m.parameter_count_billions}B[/white]"
+    )
+    console.print(
+        f"Default Context: [white]{m.context_length} tokens[/white] | License: [white]{m.license}[/white]\n"
+    )
 
     console.print("[bold white]Quantization Profiles:[/bold white]")
     for q in m.supported_quantizations:
@@ -199,7 +209,9 @@ def report(
     rec_report = recommender.recommend(hardware)
 
     generated_file = generate_html_report(rec_report, output_path=output)
-    console.print(f"[bold green]✓[/bold green] Generated HTML report: [bold white]{generated_file}[/bold white]")
+    console.print(
+        f"[bold green]✓[/bold green] Generated HTML report: [bold white]{generated_file}[/bold white]"
+    )
 
     if open_browser:
         console.print("[dim]Opening in default browser...[/dim]")

@@ -1,6 +1,8 @@
 """Tests for HTML report generator."""
 
 from tempfile import NamedTemporaryFile
+
+from llm_advisor.analysis.recommender import RecommendationEngine, RecommendationReport
 from llm_advisor.hardware.schema import (
     CpuInfo,
     GpuInfo,
@@ -11,7 +13,6 @@ from llm_advisor.hardware.schema import (
     RuntimeCapabilities,
     StorageInfo,
 )
-from llm_advisor.analysis.recommender import RecommendationEngine, RecommendationReport
 from llm_advisor.reporting.html import generate_html_report
 
 

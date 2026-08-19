@@ -2,8 +2,9 @@
 
 import json
 import os
-from llm_advisor.hardware.schema import HardwareProfile
+
 from llm_advisor.analysis.recommender import RecommendationEngine
+from llm_advisor.hardware.schema import HardwareProfile
 
 
 def _load_fixture(filename: str) -> HardwareProfile:

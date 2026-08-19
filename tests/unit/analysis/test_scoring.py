@@ -1,6 +1,6 @@
 """Tests for scoring engine and explainable score breakdowns."""
 
-from llm_advisor.analysis.compatibility import CompatibilityEngine, CompatibilityLevel
+from llm_advisor.analysis.compatibility import CompatibilityEngine
 from llm_advisor.analysis.scoring import ConfidenceLevel, ScoringEngine
 from llm_advisor.hardware.schema import (
     CpuInfo,

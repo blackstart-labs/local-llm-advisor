@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
 from rich.console import Console
 from rich.panel import Panel
 from rich.rule import Rule
@@ -14,14 +13,16 @@ from llm_advisor.analysis.recommender import RecommendationReport
 
 def render_terminal_report(
     report: RecommendationReport,
-    console: Optional[Console] = None,
+    console: Console | None = None,
 ) -> None:
     """Render a beautiful, colorful, professional terminal report."""
     con = console if console is not None else Console()
 
     # Header Panel
     header_text = Text("Local LLM Hardware Advisor", style="bold white on blue", justify="center")
-    con.print(Panel(header_text, border_style="cyan", subtitle="Know what your machine can actually run"))
+    con.print(
+        Panel(header_text, border_style="cyan", subtitle="Know what your machine can actually run")
+    )
     con.print()
 
     # Hardware Summary
@@ -108,5 +109,11 @@ def render_terminal_report(
             f"[grey70]Suggested Runtime:[/grey70] [cyan]{top.suggested_runtime}[/cyan]\n"
             f"[grey70]Suggested Context:[/grey70] [cyan]{top.suggested_context_range}[/cyan]"
         )
-        con.print(Panel(spotlight_content, border_style="gold1", title="[bold gold1]Model Breakdown[/bold gold1]"))
+        con.print(
+            Panel(
+                spotlight_content,
+                border_style="gold1",
+                title="[bold gold1]Model Breakdown[/bold gold1]",
+            )
+        )
         con.print()

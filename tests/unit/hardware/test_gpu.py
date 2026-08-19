@@ -1,6 +1,7 @@
 """Tests for GPU detection and fallbacks."""
 
 from unittest.mock import MagicMock, patch
+
 from llm_advisor.hardware.gpu import detect_gpus
 from llm_advisor.hardware.schema import GpuVendor
 

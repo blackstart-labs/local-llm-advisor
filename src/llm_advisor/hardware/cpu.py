@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import platform
 import subprocess
-from typing import List, Optional
+
 import psutil
 
 from llm_advisor.hardware.schema import CpuInfo
 
 
-def _detect_instruction_sets() -> List[str]:
+def _detect_instruction_sets() -> list[str]:
     """Detect available SIMD / tensor instruction capabilities."""
-    instructions: List[str] = []
+    instructions: list[str] = []
     system = platform.system()
 
     if system == "Linux":
@@ -31,9 +31,7 @@ def _detect_instruction_sets() -> List[str]:
             pass
     elif system == "Darwin":
         try:
-            res = subprocess.run(
-                ["sysctl", "-a"], capture_output=True, text=True, timeout=2
-            )
+            res = subprocess.run(["sysctl", "-a"], capture_output=True, text=True, timeout=2)
             out = res.stdout.lower()
             if "hw.optional.avx2: 1" in out:
                 instructions.append("AVX2")
@@ -114,7 +112,7 @@ def detect_cpu() -> CpuInfo:
         logical = 1
         physical = 1
 
-    freq_ghz: Optional[float] = None
+    freq_ghz: float | None = None
     try:
         freq = psutil.cpu_freq()
         if freq and freq.max > 0:

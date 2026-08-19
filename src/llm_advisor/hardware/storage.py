@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import os
+
 import psutil
+
 from llm_advisor.hardware.schema import StorageInfo, StorageType
 
 

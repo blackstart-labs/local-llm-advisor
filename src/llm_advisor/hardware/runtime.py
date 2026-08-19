@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import shutil
 import subprocess
+
 from llm_advisor.hardware.schema import RuntimeCapabilities
 
 
@@ -25,8 +26,12 @@ def detect_runtime() -> RuntimeCapabilities:
     has_metal = False
 
     try:
-        res = subprocess.run(["sysctl", "-n", "machdep.cpu.brand_string"], capture_output=True, text=True, timeout=1)
-        if res.returncode == 0 and ("Apple" in res.stdout or "M1" in res.stdout or "M2" in res.stdout or "M3" in res.stdout):
+        res = subprocess.run(
+            ["sysctl", "-n", "machdep.cpu.brand_string"], capture_output=True, text=True, timeout=1
+        )
+        if res.returncode == 0 and (
+            "Apple" in res.stdout or "M1" in res.stdout or "M2" in res.stdout or "M3" in res.stdout
+        ):
             has_metal = True
     except Exception:
         pass
