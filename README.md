@@ -37,6 +37,20 @@ Runs **100% offline & locally** without requiring cloud APIs.
 
 ### Installation
 
+#### 🚀 One-Line Installer (Linux & macOS)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/blackstart-labs/local-llm-advisor/main/install.sh | bash
+```
+
+#### 🪟 One-Line Installer (Windows PowerShell)
+
+```powershell
+powershell -c "irm https://raw.githubusercontent.com/blackstart-labs/local-llm-advisor/main/install.ps1 | iex"
+```
+
+#### 🛠️ Manual Installation (Developers)
+
 ```bash
 # Clone the repository
 git clone https://github.com/blackstart-labs/local-llm-advisor.git
