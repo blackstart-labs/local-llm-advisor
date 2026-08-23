@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
+import os
 import platform
 import subprocess
-
-import psutil
 
 from llm_advisor.hardware.schema import CpuInfo
 
@@ -35,8 +34,30 @@ def _detect_instruction_sets() -> list[str]:
             out = res.stdout.lower()
             if "hw.optional.avx2: 1" in out:
                 instructions.append("AVX2")
+            if "hw.optional.avx512f: 1" in out:
+                instructions.append("AVX512F")
             if "hw.optional.neon: 1" in out or "arm" in platform.machine().lower():
                 instructions.append("NEON")
+        except Exception:
+            pass
+    elif system == "Windows":
+        try:
+            res = subprocess.run(
+                [
+                    "powershell",
+                    "-NoProfile",
+                    "-Command",
+                    "(Get-CimInstance Win32_Processor).Caption + ' ' + (Get-CimInstance Win32_Processor).Name",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=3,
+            )
+            out = res.stdout.upper()
+            if "AVX2" in out or "AVX" in out:
+                instructions.append("AVX2")
+            if "AVX512" in out:
+                instructions.append("AVX512F")
         except Exception:
             pass
 
@@ -44,7 +65,7 @@ def _detect_instruction_sets() -> list[str]:
 
 
 def _get_cpu_brand_model() -> tuple[str, str]:
-    """Determine CPU brand and model strings."""
+    """Determine CPU brand and model strings across Linux, macOS, and Windows."""
     brand = "Unknown"
     model = "CPU"
     system = platform.system()
@@ -93,8 +114,43 @@ def _get_cpu_brand_model() -> tuple[str, str]:
         except Exception:
             pass
     elif system == "Windows":
-        brand = "Windows"
-        model = platform.processor() or "CPU"
+        try:
+            # Query WMI Win32_Processor for clean CPU name
+            res = subprocess.run(
+                [
+                    "powershell",
+                    "-NoProfile",
+                    "-Command",
+                    "(Get-CimInstance Win32_Processor).Name",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=3,
+            )
+            if res.returncode == 0 and res.stdout.strip():
+                full_name = res.stdout.strip().splitlines()[0]
+                model = full_name
+                if "Intel" in full_name:
+                    brand = "Intel"
+                elif "AMD" in full_name:
+                    brand = "AMD"
+                elif "ARM" in full_name or "Snapdragon" in full_name:
+                    brand = "ARM"
+            else:
+                proc_env = os.environ.get("PROCESSOR_IDENTIFIER", "")
+                if "Intel" in proc_env:
+                    brand = "Intel"
+                elif "AMD" in proc_env:
+                    brand = "AMD"
+                if proc_env:
+                    model = proc_env
+        except Exception:
+            proc_env = os.environ.get("PROCESSOR_IDENTIFIER", "")
+            if "Intel" in proc_env:
+                brand = "Intel"
+            elif "AMD" in proc_env:
+                brand = "AMD"
+            model = proc_env or model
 
     return brand, model
 
@@ -106,6 +162,8 @@ def detect_cpu() -> CpuInfo:
     is_64bit = "64" in arch or platform.architecture()[0] == "64bit"
 
     try:
+        import psutil
+
         logical = psutil.cpu_count(logical=True) or 1
         physical = psutil.cpu_count(logical=False) or logical
     except Exception:
@@ -114,6 +172,8 @@ def detect_cpu() -> CpuInfo:
 
     freq_ghz: float | None = None
     try:
+        import psutil
+
         freq = psutil.cpu_freq()
         if freq and freq.max > 0:
             freq_ghz = round(freq.max / 1000.0, 2)
